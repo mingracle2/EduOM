@@ -87,7 +87,46 @@ Four EduOM_PrevObject(
     
     if (prevOID == NULL) ERR(eBADOBJECTID_OM);
 
-    
+    e = BfM_GetTrain(catObjForFile, &catPage, PAGE_BUF);
+    if (e < 0) ERR(e);
+
+    GET_PTR_TO_CATENTRY_FOR_DATA(catObjForFile, catPage, catEntry);
+
+    if(curOID == NULL){
+        MAKE_PAGEID(pid, catEntry->fid.volNo, catEntry->lastPage);
+        e = BfM_GetTrain(&pid, &apage, PAGE_BUF);
+        if(e < 0) ERR(e);
+
+        MAKE_OBJECTID(*prevOID, pid.volNo, pid.pageNo, apage->header.nSlots - 1, apage->slot[-(prevOID->slotNo)].unique);
+    }
+    else{
+        MAKE_PAGEID(pid, curOID->volNo, curOID->pageNo);
+        e = BfM_GetTrain(&pid, &apage, PAGE_BUF);
+        if(e < 0) ERR(e);
+        
+        if(curOID->slotNo == 0){
+            if(apage->header.pid.pageNo != catEntry->firstPage) {
+                pageNo = apage->header.prevPage;
+
+                e = BfM_FreeTrain(&pid, PAGE_BUF);
+                if (e < 0) ERR(e);
+
+                pid.pageNo = pageNo;
+                
+                e = BfM_GetTrain(&pid, &apage, PAGE_BUF);
+                if (e < 0) ERR(e);
+
+                MAKE_OBJECTID(*prevOID, pid.volNo, pid.pageNo, apage->header.nSlots - 1, apage->slot[-(prevOID->slotNo)].unique);
+            }
+        }
+        else MAKE_OBJECTID(*prevOID, pid.volNo, pid.pageNo, curOID->slotNo - 1, apage->slot[-(prevOID->slotNo)].unique);
+    }
+
+    e = BfM_FreeTrain(&pid, PAGE_BUF);
+    if (e < 0) ERR(e);
+
+    e = BfM_FreeTrain(catObjForFile, PAGE_BUF);
+    if (e< 0) ERR(e);
 
     return(EOS);
     
