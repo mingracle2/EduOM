@@ -319,14 +319,14 @@ Four eduom_CreateObject(
         if(e < 0) ERR(e);
     }
 
+    e = om_PutInAvailSpaceList(catObjForFile, &pid, apage);
+    if(e < 0) ERRB1(e, &pid, PAGE_BUF);
+
     e = BfM_SetDirty(&pid, PAGE_BUF);
     if(e < 0) ERR(e);
 
     e = BfM_FreeTrain(&pid, PAGE_BUF);
     if(e < 0) ERR(e);
-
-    e = om_PutInAvailSpaceList(catObjForFile, &pid, apage);
-    if(e < 0) ERRB1(e, &pid, PAGE_BUF);
 
     e = BfM_FreeTrain(catObjForFile, PAGE_BUF);
     if(e < 0) ERR(e);
